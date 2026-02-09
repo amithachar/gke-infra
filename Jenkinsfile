@@ -11,8 +11,10 @@ pipeline {
 
     environment {
         TF_DIR = "terraform"
-        GCP_CREDENTIALS = credentials('gcp-service-account')
         PROJECT_ID = "project-3a9d1629-f247-457c-ae4"
+        REGION = "us-central1"
+        ZONE = "us-central1-a"
+        GCP_KEY = credentials('gcp-service-account')
     }
 
     stages {
@@ -27,23 +29,9 @@ pipeline {
             steps {
                 dir("${TF_DIR}") {
                     sh """
-                    echo $GCP_CREDENTIALS > gcp-key.json
-                    export GOOGLE_APPLICATION_CREDENTIALS=gcp-key.json
-                    terraform init
-                    """
-                }
-            }
-        }
-
-        stage('Terraform Plan') {
-            when {
-                expression { params.ACTION == 'apply' }
-            }
-            steps {
-                dir("${TF_DIR}") {
-                    sh """
-                    export GOOGLE_APPLICATION_CREDENTIALS=gcp-key.json
-                    terraform plan -var="project_id=${PROJECT_ID}"
+                        echo '${GCP_KEY}' > key.json
+                        export GOOGLE_APPLICATION_CREDENTIALS=key.json
+                        terraform init
                     """
                 }
             }
@@ -56,8 +44,11 @@ pipeline {
             steps {
                 dir("${TF_DIR}") {
                     sh """
-                    export GOOGLE_APPLICATION_CREDENTIALS=gcp-key.json
-                    terraform apply -auto-approve -var="project_id=${PROJECT_ID}"
+                        export GOOGLE_APPLICATION_CREDENTIALS=key.json
+                        terraform apply -auto-approve \
+                        -var="project_id=${PROJECT_ID}" \
+                        -var="region=${REGION}" \
+                        -var="zone=${ZONE}"
                     """
                 }
             }
@@ -70,8 +61,11 @@ pipeline {
             steps {
                 dir("${TF_DIR}") {
                     sh """
-                    export GOOGLE_APPLICATION_CREDENTIALS=gcp-key.json
-                    terraform destroy -auto-approve -var="project_id=${PROJECT_ID}"
+                        export GOOGLE_APPLICATION_CREDENTIALS=key.json
+                        terraform destroy -auto-approve \
+                        -var="project_id=${PROJECT_ID}" \
+                        -var="region=${REGION}" \
+                        -var="zone=${ZONE}"
                     """
                 }
             }
