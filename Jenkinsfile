@@ -14,7 +14,6 @@ pipeline {
         PROJECT_ID = "project-3a9d1629-f247-457c-ae4"
         REGION = "us-central1"
         ZONE = "us-central1-a"
-        GCP_KEY = credentials('gcp-service-account')
     }
 
     stages {
@@ -29,9 +28,28 @@ pipeline {
             steps {
                 dir("${TF_DIR}") {
                     sh """
-                        echo '${GCP_KEY}' > key.json
-                        export GOOGLE_APPLICATION_CREDENTIALS=key.json
                         terraform init
+                    """
+                }
+            }
+        }
+
+        stage('Terraform Validate') {
+            steps {
+                dir("${TF_DIR}") {
+                    sh "terraform validate"
+                }
+            }
+        }
+
+        stage('Terraform Plan') {
+            steps {
+                dir("${TF_DIR}") {
+                    sh """
+                        terraform plan \
+                        -var="project_id=${PROJECT_ID}" \
+                        -var="region=${REGION}" \
+                        -var="zone=${ZONE}"
                     """
                 }
             }
@@ -44,13 +62,21 @@ pipeline {
             steps {
                 dir("${TF_DIR}") {
                     sh """
-                        export GOOGLE_APPLICATION_CREDENTIALS=key.json
                         terraform apply -auto-approve \
                         -var="project_id=${PROJECT_ID}" \
                         -var="region=${REGION}" \
                         -var="zone=${ZONE}"
                     """
                 }
+            }
+        }
+
+        stage('Approval Before Destroy') {
+            when {
+                expression { params.ACTION == 'destroy' }
+            }
+            steps {
+                input message: "Are you sure you want to DESTROY the GKE cluster?"
             }
         }
 
@@ -61,7 +87,6 @@ pipeline {
             steps {
                 dir("${TF_DIR}") {
                     sh """
-                        export GOOGLE_APPLICATION_CREDENTIALS=key.json
                         terraform destroy -auto-approve \
                         -var="project_id=${PROJECT_ID}" \
                         -var="region=${REGION}" \
