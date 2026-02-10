@@ -12,6 +12,7 @@ pipeline {
     environment {
         PROJECT_ID = "project-3a9d1629-f247-457c-ae4"
         REGION     = "us-central1"
+        ZONE       = "us-central1-a"
     }
 
     stages {
@@ -39,7 +40,8 @@ pipeline {
                 sh """
                 terraform plan \
                 -var="project_id=${PROJECT_ID}" \
-                -var="region=${REGION}"
+                -var="region=${REGION}" \
+                -var="zone=${ZONE}"
                 """
             }
         }
@@ -52,7 +54,8 @@ pipeline {
                 sh """
                 terraform apply -auto-approve \
                 -var="project_id=${PROJECT_ID}" \
-                -var="region=${REGION}"
+                -var="region=${REGION}" \
+                -var="zone=${ZONE}"
                 """
             }
         }
@@ -74,7 +77,8 @@ pipeline {
                 sh """
                 terraform destroy -auto-approve \
                 -var="project_id=${PROJECT_ID}" \
-                -var="region=${REGION}"
+                -var="region=${REGION}" \
+                -var="zone=${ZONE}"
                 """
             }
         }
