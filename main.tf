@@ -1,5 +1,5 @@
 resource "google_container_cluster" "gke" {
-  name     = "ott-gke-cluster"
+  name     = "ott-cluster"
   location = var.region
 
   remove_default_node_pool = true
@@ -12,16 +12,14 @@ resource "google_container_node_pool" "primary_nodes" {
   cluster  = google_container_cluster.gke.name
 
   node_config {
-    machine_type = "e2-medium"
-
-    # 🔥 Reduced disk to avoid SSD quota error
-    disk_size_gb = 20
+    machine_type = "e2-micro"   # 🔥 smallest possible
+    disk_type    = "pd-standard"  # 🔥 NOT SSD
+    disk_size_gb = 10            # 🔥 minimal disk
 
     oauth_scopes = [
       "https://www.googleapis.com/auth/cloud-platform"
     ]
   }
 
-  # 🔥 Reduced node count for dev environment
   node_count = 1
 }
