@@ -1,4 +1,6 @@
-variable "project_id" {}
+variable "project_id" {
+  default = "durable-catbird-450018-j4"
+}
 
 variable "region" {
   default = "us-central1"
