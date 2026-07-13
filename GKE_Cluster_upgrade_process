@@ -26,6 +26,7 @@ To see a quick overview of your cluster or local context version, run:
 
 ```bash
 gcloud container clusters list
+```
 
 ```bash
 kubectl version --short
