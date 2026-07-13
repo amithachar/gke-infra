@@ -50,7 +50,7 @@ Always verify the cluster before upgrading.
 
 ## Check Nodes
 
-```bash
+```
 kubectl get nodes
 ```
 
