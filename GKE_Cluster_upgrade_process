@@ -24,7 +24,7 @@ Make sure you have the `gcloud` CLI and `kubectl` installed and configured with 
 
 To see a quick overview of your cluster or local context version, run:
 
-```bash
+```
 gcloud container clusters list
 ```
 
