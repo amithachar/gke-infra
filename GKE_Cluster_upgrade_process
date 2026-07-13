@@ -1,1 +1,122 @@
+# GKE Cluster Upgrade Guide
 
+A step-by-step guide to manually upgrading a Google Kubernetes Engine (GKE) cluster, checking available versions, and managing automatic updates.
+
+## Table of Contents
+- [Prerequisites](#prerequisites)
+- [Step 1: Check Current Version](#step-1-check-current-version)
+- [Step 2: Check Available Upgrade Versions](#step-2-check-available-upgrade-versions)
+- [Step 3: Upgrade the Control Plane](#step-3-upgrade-the-control-plane)
+- [Step 4: Upgrade the Node Pool](#step-4-upgrade-the-node-pool)
+- [Step 5: Verify the Upgrade](#step-5-verify-the-upgrade)
+- [Automation & Shortcuts](#automation--shortcuts)
+  - [Upgrade to the Latest Available Version](#upgrade-to-the-latest-available-version)
+  - [Enable Automatic Upgrades](#enable-automatic-upgrades)
+
+---
+
+## Prerequisites
+Make sure you have the `gcloud` CLI and `kubectl` installed and configured with access to your Google Cloud project.
+
+---
+
+## Step 1: Check Current Version
+
+To see a quick overview of your cluster or local context version, run:
+
+```bash
+gcloud container clusters list
+
+```bash
+kubectl version --short
+
+```bash
+gcloud container clusters describe lottery-cluster \
+    --zone us-central1-a \
+    --format="value(currentMasterVersion,currentNodeVersion)"
+
+## Step 2: Check Available Upgrade Versions
+Before upgrading, check which versions are currently supported and available in your zone:
+
+```bash
+gcloud container get-server-config \
+    --zone us-central1-a
+
+```bash
+Valid master versions:
+1.34.2-gke.100
+1.34.1-gke.200
+1.33.5-gke.150
+
+## Step 3: Upgrade the Control Plane
+Choose one of the available versions from the previous step to upgrade your cluster's master components.
+
+```bash
+gcloud container clusters upgrade lottery-cluster \
+    --master \
+    --cluster-version=1.34.2-gke.100 \
+    --zone us-central1-a
+
+##  Step 4: Upgrade the Node Pool
+First, list your available node pools to find the exact name:
+
+```bash
+gcloud container node-pools list \
+    --cluster lottery-cluster \
+    --zone us-central1-a
+
+```bash
+NAME          MACHINE_TYPE
+default-pool  e2-small
+
+Next, upgrade the specific node pool to match your control plane version:
+
+```bash
+gcloud container node-pools upgrade default-pool \
+    --cluster lottery-cluster \
+    --cluster-version=1.34.2-gke.100 \
+    --zone us-central1-a
+
+ℹ️ How it works: GKE performs a rolling upgrade. It safely creates new nodes, drains workloads from old nodes to migrate them to the new ones, and removes the old nodes once the transition is complete.
+
+
+##  Step 5: Verify the Upgrade
+Confirm that your nodes have updated and reached a Ready status:
+
+```bash
+kubectl get nodes
+
+```bash
+NAME                                    STATUS   VERSION
+gke-lottery-cluster-default-pool-xxxx   Ready    v1.34.2-gke.100
+
+Alternatively, you can verify via gcloud:
+
+```bash
+gcloud container clusters describe lottery-cluster \
+    --zone us-central1-a \
+    --format="value(currentMasterVersion,currentNodeVersion)"
+
+
+Automation & Shortcuts
+Upgrade to the Latest Available Version
+Instead of specifying a specific version string, you can let GKE automatically pick the latest supported version for your release channel:
+
+```bash
+gcloud container clusters upgrade lottery-cluster \
+    --zone us-central1-a
+
+Enable Automatic Upgrades
+To hand off version management completely to Google Cloud, enable auto-upgrading on the cluster:
+
+```bash
+gcloud container clusters update lottery-cluster \
+    --enable-autoupgrade \
+    --zone us-central1-a
+Or enable it specifically for an individual node pool:
+
+```bash
+gcloud container node-pools update default-pool \
+    --enable-autoupgrade \
+    --cluster lottery-cluster \
+    --zone us-central1-a
