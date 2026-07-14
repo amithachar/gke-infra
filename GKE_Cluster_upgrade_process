@@ -50,7 +50,9 @@ Always verify the cluster before upgrading.
 
 ## Check Nodes
 
-```kubectl get nodes
+```
+kubectl get nodes
+
 ```
 
 Expected
