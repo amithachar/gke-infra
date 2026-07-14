@@ -1,2 +1,0 @@
-# gke-infra
-gke-infra
